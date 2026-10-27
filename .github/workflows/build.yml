@@ -22,8 +22,19 @@ jobs:
 
       - name: Find gradle project folder
         id: root
+        shell: bash
         run: |
-          f=$(find . -name "settings.gradle" | head -n 1)
-          if [ -z "$f" ]; then
-            echo "ERROR: settings.gradle not found anywhere in this repo!"
-            grep -i "done" /dev/null #
+          f="$(find . -name 'settings.gradle' | head -n 1)"
+          test -n "$f"
+          echo "dir=$(dirname "$f")" >> "$GITHUB_OUTPUT"
+          echo "Building in folder: $(dirname "$f")"
+
+      - name: Build
+        run: gradle build
+        working-directory: ${{ steps.root.outputs.dir }}
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: donutpay-mod
+          path: ${{ steps.root.outputs.dir }}/build/libs/*.jar
